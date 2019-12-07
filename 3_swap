@@ -1,0 +1,22 @@
+//This code swaps the entered values, leaving the variables in their places
+
+#include <iostream>
+
+
+void Swap(int &x, int &y) 
+{
+	int auxiliary = x;
+	x = y;
+	y = auxiliary;
+}
+
+
+int main()
+{
+    std::cout << "Enter any 2 numbers\n";
+	int x, y;
+	std::cin >> x >> y;
+
+	Swap(x, y);
+	std::cout << "These numbers are reversed!\n"<<x<<'\n'<<y;
+}
