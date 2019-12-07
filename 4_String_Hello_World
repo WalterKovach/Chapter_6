@@ -1,0 +1,19 @@
+#include <iostream>
+
+
+void C_style(const char* string)
+{
+	while (*string != '\0')
+	{
+		std::cout << *string;
+		string++;
+	}
+}
+
+
+int main()
+{
+	char string[] = "Hello, world";
+	C_style(string);
+	return 0;
+}
