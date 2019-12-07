@@ -6,3 +6,6 @@
 
 # 3_swap
 //This code swaps the entered values, leaving the variables in their places
+
+# 4_String_Hello_World
+//Prints the characters of the string alternately until a null terminator is encountered. Implemented using an array of C-Style
