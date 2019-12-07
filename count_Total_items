@@ -1,0 +1,24 @@
+#include <iostream>
+
+enum tems
+{
+  HEALTH_POTION,
+  TORCH,
+  ARROW,
+  MAX
+};
+
+int countTotal(int *array) 
+{
+  int count(0);
+  for (int i = 0; i < MAX; i++)
+    count += array[i];
+    return count;
+}
+
+int main()
+{
+  int array[MAX]{ 3, 6, 12 };
+  std::cout « "The player has " « countTotal(array) « " items in total.\n";
+  return 0; 
+}
