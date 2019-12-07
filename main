@@ -1,0 +1,98 @@
+//This code sort a list of entering students and output in descending order
+
+
+#include <iostream>
+#include <string>
+
+struct Student 
+{
+	std::string name;
+	int assessment;
+};
+
+void DataEntry(Student* array_assessment, const int &quantity)
+{
+	for (int student{ 0 }; student < quantity; ++student)
+	{
+		int &assessment = array_assessment[student].assessment;
+		
+		
+			std::cout << "\nEnter the student's name #" << student + 1 << '\n';
+			std::cin.ignore(32676, '\n');
+
+			std::getline(std::cin, array_assessment[student].name);
+			
+		do {
+			std::cout << "Enter the student's assessment:\n";
+			std::cin >> assessment;
+
+			if (std::cin.fail()) 
+			{
+				std::cin.ignore(32676, '\n');
+				std::cin.clear();
+			}
+
+		} while (assessment < 0 || assessment > 100);
+	}
+}
+
+void SortingAnArray(Student *array_assessment, const int &quantity) 
+{
+	for (int count1 = 0; count1 < quantity-1; ++count1)
+	{
+		bool change = false;
+
+		for (int count2 = count1+1; count2 < quantity; ++count2) 
+		{
+			if (array_assessment[count1].assessment < array_assessment[count2].assessment)
+			{
+				std::swap(array_assessment[count1], array_assessment[count2]);
+				change = true;
+			}
+		}
+		if (!change)
+			break;
+	}
+}
+
+void DataOutput(Student *array_assessment, const int quantity) 
+{
+	for (int student = 0; student < quantity; ++student)
+	{
+		int& assessment = array_assessment[student].assessment;
+
+		std::cout << array_assessment[student].name << " got a grade of " << assessment << '\n';
+	}
+}
+
+int main()
+{
+	int quantity{};
+	do {
+		std::cout << "How many students would you like to enter? ";
+		std::cin >> quantity;
+		if (std::cin.fail()) 
+		{
+			std::cin.clear();
+			std::cin.ignore(32676, '\n');
+		}
+	} while (quantity <= 1);
+
+
+	
+	auto* array_assessment = new Student[quantity];
+
+	
+
+	DataEntry(array_assessment, quantity);
+	SortingAnArray(array_assessment, quantity);
+	DataOutput(array_assessment, quantity);
+
+
+	delete[] array_assessment;
+	array_assessment = nullptr;
+	return 0;
+	
+
+}
+
