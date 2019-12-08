@@ -9,3 +9,5 @@
 
 # 4_String_Hello_World
 //Prints the characters of the string alternately until a null terminator is encountered. Implemented using an array of C-Style
+ # 5_CardGame
+ //This is a simple card game on the 52 cards
