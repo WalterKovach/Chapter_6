@@ -212,16 +212,18 @@ bool playBlackjack(std::array<std::array<Card, 52>, 6> &deck, std::array<Card, 2
 
 	std::cout << "Your bet - ";
 	double bet;
-	money_f(bet);
+	money_f(bet);//Назначаем ставку игрока
 	purse -= bet;
 
 	do 
 	{
 
-		cardsOfGamer[game] = { deckCardPtr[game] };
-		printCard(cardsOfGamer[game]);
-		cardsOfMachine[game] = { deckCardPtr[game] };
-		if ((game == 1) && (Summ(cardsOfGamer) == 21) && (getCardValue(cardsOfMachine[0]) > RANK_9))
+		cardsOfGamer[game] = { deckCardPtr[game] };//Игрок получает game-ную карту
+		printCard(cardsOfGamer[game]);//Карта выводится в консоль
+		cardsOfMachine[game] = { deckCardPtr[game] };//Машина получает game-ную карту
+		
+		
+		if ((game == 1) && (Summ(cardsOfGamer) == 21) && (getCardValue(cardsOfMachine[0]) > RANK_9))//Если это вторая карта машины, которая должна быть тёмной, то мы сначала смотрим, есть ли блэкджек у игрока
 		{
 			if (question_blackjack() == 'h')
 				purse += bet;
@@ -233,7 +235,9 @@ bool playBlackjack(std::array<std::array<Card, 52>, 6> &deck, std::array<Card, 2
 			}
 			else
 				std::cout << "\t\t\tPUSH!!!";
-		}	
+		}else printCard(cardsOfMachine[game] ) ;
+		
+		
 		++game;
 	} while ((Summ(cardsOfGamer) < 21) && (Summ(cardsOfMachine) < 21));
 
