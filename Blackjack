@@ -1,0 +1,297 @@
+//Требует доработки
+
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <array>
+#include <string>
+
+void Owl_san();
+enum CardRank
+{
+	RANK_2,
+	RANK_3,
+	RANK_4,
+	RANK_5,
+	RANK_6,
+	RANK_7,
+	RANK_8,
+	RANK_9,
+	RANK_10,
+	RANK_JACK,
+	RANK_QUEEN,
+	RANK_KING,
+	RANK_ACE,
+	RANK_MAX
+};
+enum CardSuit
+{
+	SUIT_TREFU,
+	SUIT_BYBNU,
+	SUIT_CHERVU,
+	SUIT_PIKI,
+	SUIT_MAX
+};
+struct Card
+{
+	CardRank rank;//ранг
+	CardSuit suit;//достоинство
+};
+
+void printRank(const Card& card)
+{
+	switch (card.rank)
+	{
+	case RANK_2: std::cout << " 2";  break;
+	case RANK_3: std::cout << " 3";  break;
+	case RANK_4: std::cout << " 4";  break;
+	case RANK_5: std::cout << " 5";  break;
+	case RANK_6: std::cout << " 6";  break;
+	case RANK_7: std::cout << " 7";  break;
+	case RANK_8: std::cout << " 8";  break;
+	case RANK_9: std::cout << " 9";  break;
+	case RANK_10: std::cout << "10";  break;
+	case RANK_JACK: std::cout << " J";  break;
+	case RANK_QUEEN: std::cout << " Q";  break;
+	case RANK_KING: std::cout << " K";  break;
+	case RANK_ACE: std::cout << " A";  break;
+	}
+	
+}
+void printSuit(const Card &card) 
+{
+	switch (card.suit)
+	{
+		case SUIT_TREFU: std::cout << "TR";  break;
+		case SUIT_BYBNU: std::cout << " B";  break;
+		case SUIT_CHERVU: std::cout << "CH";  break;
+		case SUIT_PIKI: std::cout << " P";  break;
+	}
+
+
+}
+void printCard(const Card &card) 
+{
+	std::cout << "\t__________________________________\n\t|";
+	printRank(card);
+	std::cout << "\t\t\t\t  |\n\t|";
+	printSuit(card);
+	std::cout << "\t\t\t\t  |\n\t|\t\t\t\t  |\n\t|\t\t\t\t  |\n\t|\t\t\t\t  |\n\t|\t\t\t\t  |\n\t|\t\t\t\t  |\n\t|\t\t\t\t";
+	printSuit(card);
+	std::cout << "|\n\t|_______________________________";
+	printRank(card);
+	std::cout << "|\n\n\n";
+}
+void printDeck(const std::array<std::array<Card, 52>, 6> &few_deck)
+{
+	for(const std::array<Card, 52> &deck : few_deck)
+		for (const Card &card : deck)
+		{
+		printCard(card);
+		}
+	std::cout << '\n';
+}
+void swapCard(Card& card1, Card& card2)
+{
+	Card temp = card1;
+	card1 = card2;
+	card2 = temp;
+}
+int getRandomNumber(int min, int max)
+{
+	static const double fraction = 1.0 / (static_cast<double>(RAND_MAX) + 1.0);
+	// Равномерно распределяем генерацию случайного числа в диапазоне значений
+	return static_cast<int>(rand() * fraction * (max - min + 1) + min);
+}
+void shuffleDeck(std::array<std::array<Card, 52>, 6> &deck)
+{
+	for(int d_deck = 0; d_deck < 6; ++d_deck)
+		for (int index = 0; index < 52; ++index)
+		{
+		int randCard = getRandomNumber(0, 51);
+		int randDeck = getRandomNumber(0, 5);
+		swapCard(deck[d_deck][index], deck[randDeck][randCard]);
+		}
+}
+
+
+int getCardValue(const Card& card)
+{
+	switch (card.rank)
+	{
+	case RANK_2:		return 2;
+	case RANK_3:		return 3;
+	case RANK_4:		return 4;
+	case RANK_5:		return 5;
+	case RANK_6:		return 6;
+	case RANK_7:		return 7;
+	case RANK_8:		return 8;
+	case RANK_9:		return 9;
+	case RANK_10:		
+	case RANK_JACK:	    
+	case RANK_QUEEN:   
+	case RANK_KING:	    return 10;
+	case RANK_ACE:		return 11;
+	}
+
+}
+
+bool question_ace() 
+{
+	std::cout << "Count an ACE as one point?";
+	return true; 
+	return false;
+}
+char question_blackjack() 
+{
+	std::cout << "\t\tHit of Stand?\n\t\thit---->h\tstand---->s\n";
+	char answer;
+	do 
+	{
+		std::cin >> answer;
+		std::cin.ignore(32676, '\n');
+	} while (answer == 'h' || answer == 's');
+		return answer;
+}
+
+
+
+bool findAce(std::array<Card, 21> &cards) 
+{
+	for (int i = 0; i < 21; ++i)
+	{
+		if (cards[i].rank == RANK_ACE)
+			return true;
+	}
+	return false;
+}
+
+int Summ(std::array<Card, 21>& cards)
+{
+	int summ{ 0 };
+	bool ace = false;
+	for (int i = 0; i < 21; ++i)
+	{
+		int rank = getCardValue(cards[i]);
+		if (findAce(cards) && summ > 21)//Если общая сумма очков превышает 21, то мы можем по желанию игрока засчитать карту с достоинством 11, как 1(причём эта карта не обязательно текущая)
+			if (question_ace())						//Пример: {2,11,2,3,9}->27-----yes------{2,1,2,3,9}->17
+				summ -= 10 + rank;
+			else
+				summ += rank;
+		else if ((rank == RANK_ACE) && ace)//Когда туз встречается второй раз, он засчитывается как 1
+			summ++;
+		else if (rank == RANK_ACE)//2,11,3,2,4
+		{
+			ace = true;
+			summ += rank;
+		}
+		else
+			summ += rank;
+	
+	}
+	return summ;
+}
+
+void money_f(double &money) 
+{
+	do {
+		std::cin >> money;
+		std::cin.ignore(32676, '\n');
+		if (std::cin.fail())
+		{
+			std::cin.clear();
+			std::cin.ignore(32676, '\n');
+		}
+	} while (money<=100);
+}
+
+bool playBlackjack(std::array<std::array<Card, 52>, 6> &deck, std::array<Card, 21> &cardsOfGamer, std::array<Card, 21> &cardsOfMachine, double purse) 
+{
+	Card *deckCardPtr = &deck[0][0];
+	int game{0};
+
+	std::cout << "Your bet - ";
+	double bet;
+	money_f(bet);
+	purse -= bet;
+
+	do 
+	{
+
+		cardsOfGamer[game] = { deckCardPtr[game] };
+		printCard(cardsOfGamer[game]);
+		cardsOfMachine[game] = { deckCardPtr[game] };
+		if ((game == 1) && (Summ(cardsOfGamer) == 21) && (getCardValue(cardsOfMachine[0]) > RANK_9))
+		{
+			if (question_blackjack() == 'h')
+				purse += bet;
+			else if (getCardValue(cardsOfMachine[game]) > RANK_9&& Summ(cardsOfMachine) < 21)
+			{
+				printCard(cardsOfMachine[game]);
+				purse += (1.5 * bet);
+
+			}
+			else
+				std::cout << "\t\t\tPUSH!!!";
+		}	
+		++game;
+	} while ((Summ(cardsOfGamer) < 21) && (Summ(cardsOfMachine) < 21));
+
+	return true;
+}
+
+
+
+
+int main()
+{
+	Owl_san();
+	std::cout << "How much money are you willing to spend on gambling?\nMinimum rate - 100\n";
+
+	double purse;
+	money_f(purse);
+
+	
+
+	std::array<std::array<Card, 52>, 6> deck;//Создаём массив из 6 колод карт, в каждой из которых по 52 карты
+
+	
+	for (int d_deck = 0; d_deck < 6; ++d_deck)//Внешний уровень - колоды
+	{
+		int card{ 0 };//Итолько здесь начинаем отсчёт карт
+
+		//Присваиваем облик одной карты
+		for (int suit = 0; suit < SUIT_MAX; ++suit)
+			for (int rank = 0; rank < RANK_MAX; ++rank)
+			{
+				deck[d_deck][card].suit = static_cast<CardSuit>(suit);
+				deck[d_deck][card].rank = static_cast<CardRank>(rank);
+				card++;
+			}
+	}
+	shuffleDeck(deck);
+	/*
+	printDeck(deck);
+	
+	std::cout << '\n';
+	printDeck(deck);
+	*/
+	
+	std::array<Card, 21> cardsOfGamer{};
+	std::array<Card, 21> cardsOfMachine{};
+	playBlackjack(deck, cardsOfGamer, cardsOfMachine, purse);
+	
+	return 0;
+}
+
+
+
+
+void Owl_san() 
+{
+	std::cout << "\t:)\\____/(:\n";
+	std::cout << "\t  (@)v(@)\n";
+	std::cout << "\t {|~- -~|}\n";
+	std::cout << "\t {/^'^'^\\}\n";
+	std::cout << "\t  ~~m-m~~\n\n\n";
+}
