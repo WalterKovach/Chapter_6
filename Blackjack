@@ -222,8 +222,8 @@ bool playBlackjack(std::array<std::array<Card, 52>, 6> &deck, std::array<Card, 2
 		printCard(cardsOfGamer[game]);//Карта выводится в консоль
 		cardsOfMachine[game] = { deckCardPtr[game] };//Машина получает game-ную карту
 		
-		
-		if ((game == 1) && (Summ(cardsOfGamer) == 21) && (getCardValue(cardsOfMachine[0]) > RANK_9))//Если это вторая карта машины, которая должна быть тёмной, то мы сначала смотрим, есть ли блэкджек у игрока
+		//Если это вторая карта машины, которая должна быть тёмной, то мы сначала смотрим, есть ли блэкджек у игрока
+		if ((game == 1) && (Summ(cardsOfGamer) == 21) && (getCardValue(cardsOfMachine[0]) > RANK_9))
 		{
 			if (question_blackjack() == 'h')
 				purse += bet;
