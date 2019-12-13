@@ -22,7 +22,8 @@ enum CardRank
 	RANK_QUEEN,
 	RANK_KING,
 	RANK_ACE,
-	RANK_MAX
+	RANK_MAX,
+	RANK_1_ACE
 };
 enum CardSuit
 {
@@ -132,62 +133,54 @@ int getCardValue(const Card& card)
 	case RANK_QUEEN:   
 	case RANK_KING:	    return 10;
 	case RANK_ACE:		return 11;
+	case RANK_1_ACE:	return 1;
 	}
 
 }
 
-bool question_ace() 
+char question(char &answer, const char &x, const char &y) 
 {
-	std::cout << "Count an ACE as one point?";
-	return true; 
-	return false;
-}
-char question_blackjack() 
-{
-	std::cout << "\t\tHit of Stand?\n\t\thit---->h\tstand---->s\n";
-	char answer;
-	do 
-	{
+	do{
 		std::cin >> answer;
 		std::cin.ignore(32676, '\n');
-	} while (answer == 'h' || answer == 's');
-		return answer;
+	} while (answer != x || answer != y);
+	return answer;
 }
 
 
 
-bool findAce(std::array<Card, 21> &cards) 
+int findAce(std::array<Card, 21> &cards) 
 {
 	for (int i = 0; i < 21; ++i)
 	{
 		if (cards[i].rank == RANK_ACE)
-			return true;
+			return i;
 	}
-	return false;
+	return 0;
 }
 
 int Summ(std::array<Card, 21>& cards)
 {
 	int summ{ 0 };
-	bool ace = false;
+	
 	for (int i = 0; i < 21; ++i)
 	{
 		int rank = getCardValue(cards[i]);
-		if (findAce(cards) && summ > 21)//Если общая сумма очков превышает 21, то мы можем по желанию игрока засчитать карту с достоинством 11, как 1(причём эта карта не обязательно текущая)
-			if (question_ace())						//Пример: {2,11,2,3,9}->27-----yes------{2,1,2,3,9}->17
-				summ -= 10 + rank;
-			else
-				summ += rank;
-		else if ((rank == RANK_ACE) && ace)//Когда туз встречается второй раз, он засчитывается как 1
-			summ++;
-		else if (rank == RANK_ACE)//2,11,3,2,4
+		if ( i > 0 && (rank == RANK_ACE || findAce(cards)))//Первый туз всегда засчитываем как 11
 		{
-			ace = true;
 			summ += rank;
+			if (summ>21)
+			{
+				//Если текущая карта туз - то мы заменяем ПЕРВЫЙ ВСТРЕЧНЫЙ туз на модифицированный туз со значением 1
+				//1,11,11 = 23--->1,1,11 = 13 (варианта 11,1,11 просто не может существовать)
+				cards[findAce(cards)].rank = RANK_1_ACE;
+/*Сумму считаем по особенному:  в любом случае отнимаем 10 и прибавляем НЕМОДИФИЦИРОВАННЫЙ ТУЗ(если текущая карта туз)
+														   или значение обычной карты*/
+				summ -= 10;
+			}
 		}
 		else
 			summ += rank;
-	
 	}
 	return summ;
 }
@@ -205,45 +198,83 @@ void money_f(double &money)
 	} while (money<=100);
 }
 
-bool playBlackjack(std::array<std::array<Card, 52>, 6> &deck, std::array<Card, 21> &cardsOfGamer, std::array<Card, 21> &cardsOfMachine, double purse) 
+void playBlackjack(std::array<std::array<Card, 52>, 6>& deck, double purse)
 {
-	Card *deckCardPtr = &deck[0][0];
-	int game{0};
+	std::array<Card, 21> cardsOfGamer{};
+	std::array<Card, 21> cardsOfMachine{};
+	Card* deckCardPtr = &deck[0][0];
+	int game{ 0 };
 
 	std::cout << "Your bet - ";
 	double bet;
-	money_f(bet);//Назначаем ставку игрока
+	money_f(bet);
 	purse -= bet;
+	int summCardsOfGamer{ 0 };
+	int summCardsOfMachine{ 0 };
 
-	do 
+
+	cardsOfGamer[game] = { deckCardPtr[game] };
+	printCard(cardsOfGamer[game]);
+	cardsOfMachine[game] = { deckCardPtr[game] };
+	printCard(cardsOfMachine[game]);
+
+	summCardsOfGamer = { Summ(cardsOfGamer) };
+	summCardsOfMachine = { Summ(cardsOfMachine) };
+
+	for (int i = 1; summCardsOfGamer < 21; ++i)
 	{
-
-		cardsOfGamer[game] = { deckCardPtr[game] };//Игрок получает game-ную карту
-		printCard(cardsOfGamer[game]);//Карта выводится в консоль
-		cardsOfMachine[game] = { deckCardPtr[game] };//Машина получает game-ную карту
-		
-		//Если это вторая карта машины, которая должна быть тёмной, то мы сначала смотрим, есть ли блэкджек у игрока
-		if ((game == 1) && (Summ(cardsOfGamer) == 21) && (getCardValue(cardsOfMachine[0]) > RANK_9))
+		char answer{};
+		std::cout << "Do you need another card?";
+		answer = question(answer, 'm', 'e');
+		if (answer == 'm')
 		{
-			if (question_blackjack() == 'h')
-				purse += bet;
-			else if (getCardValue(cardsOfMachine[game]) > RANK_9&& Summ(cardsOfMachine) < 21)
+			cardsOfGamer[i] = { deckCardPtr[i] };
+			printCard(cardsOfGamer[i]);
+			summCardsOfGamer = { Summ(cardsOfGamer) };
+		}
+		else
+			break;
+	}
+
+	cardsOfMachine[1] = { deckCardPtr[1] };
+	summCardsOfMachine = { Summ(cardsOfMachine) };
+	if ((summCardsOfGamer == 21) && (getCardValue(cardsOfMachine[0]) > RANK_9))
+	{
+		std::cout << "\t\tHit or Stand?\n\t\thit---->h\tstand---->s\n";
+		char answer = question(answer, 'h', 's');
+		if (answer == 'h')
+			purse += (2 * bet);
+		else
+		{
+			for (int i = 2; summCardsOfMachine <= 21; ++i)
 			{
-				printCard(cardsOfMachine[game]);
-				purse += (1.5 * bet);
-
+				if (summCardsOfMachine == 21)
+				{
+					printCard(cardsOfMachine[i]);
+					std::cout << "\t\t\tPUSH!!!";
+					purse += bet;
+				}
+				else if (summCardsOfMachine < 21 && summCardsOfMachine > 16)
+				{
+					printCard(cardsOfMachine[1]);
+					purse += (3 * bet);
+				}
+				else
+				{
+					cardsOfMachine[i] = { deckCardPtr[i] };
+					printCard(cardsOfMachine[i]);
+					summCardsOfMachine = { Summ(cardsOfMachine) };
+				}
 			}
-			else
-				std::cout << "\t\t\tPUSH!!!";
-		}else printCard(cardsOfMachine[game] ) ;
-		
-		
-		++game;
-	} while ((Summ(cardsOfGamer) < 21) && (Summ(cardsOfMachine) < 21));
+		}
 
-	return true;
+	}
+	else if (summCardsOfGamer > 21)
+		std::cout << "";
+	else if (summCardsOfGamer < summCardsOfMachine)
+		std::cout << "";
+
 }
-
 
 
 
@@ -281,9 +312,7 @@ int main()
 	printDeck(deck);
 	*/
 	
-	std::array<Card, 21> cardsOfGamer{};
-	std::array<Card, 21> cardsOfMachine{};
-	playBlackjack(deck, cardsOfGamer, cardsOfMachine, purse);
+	playBlackjack(deck, purse);
 	
 	return 0;
 }
