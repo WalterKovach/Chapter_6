@@ -1,6 +1,6 @@
 //Требует доработки
 
-##include <iostream>
+#include <iostream>
 #include <cstdlib>
 #include <ctime>
 #include <array>
