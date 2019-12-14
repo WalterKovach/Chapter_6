@@ -134,11 +134,27 @@ int getCardValue(const Card& card)
 	case RANK_KING:	    return 10;
 	case RANK_ACE:		return 11;
 	case RANK_1_ACE:	return 1;
+	default: return 0; 
 	}
-
 }
 
-char question(char &answer, const char &x, const char &y) 
+
+
+void money_f(double &money) 
+{
+	do {
+		std::cin >> money;
+		std::cin.ignore(32676, '\n');
+		if (std::cin.fail())
+		{
+			std::cin.clear();
+			std::cin.ignore(32676, '\n');
+		}
+	} while (money<=100);
+}
+
+
+char question(char answer,  char x,  char y) 
 {
 	do{
 		std::cin >> answer;
@@ -147,18 +163,16 @@ char question(char &answer, const char &x, const char &y)
 	return answer;
 }
 
-
-
 int findAce(std::array<Card, 21> &cards) 
 {
-	for (int i = 0; i < 21; ++i)
+	
+	for (int i=0; i < 21; ++i)
 	{
 		if (cards[i].rank == RANK_ACE)
 			return i;
 	}
 	return 0;
 }
-
 int Summ(std::array<Card, 21>& cards)
 {
 	int summ{ 0 };
@@ -185,19 +199,6 @@ int Summ(std::array<Card, 21>& cards)
 	return summ;
 }
 
-void money_f(double &money) 
-{
-	do {
-		std::cin >> money;
-		std::cin.ignore(32676, '\n');
-		if (std::cin.fail())
-		{
-			std::cin.clear();
-			std::cin.ignore(32676, '\n');
-		}
-	} while (money<=100);
-}
-
 void playBlackjack(std::array<std::array<Card, 52>, 6>& deck, double purse)
 {
 	std::array<Card, 21> cardsOfGamer{};
@@ -213,22 +214,25 @@ void playBlackjack(std::array<std::array<Card, 52>, 6>& deck, double purse)
 	int summCardsOfMachine{ 0 };
 
 
-	cardsOfGamer[game] = { deckCardPtr[game] };
-	printCard(cardsOfGamer[game]);
-	cardsOfMachine[game] = { deckCardPtr[game] };
-	printCard(cardsOfMachine[game]);
+	cardsOfGamer[0] = { deckCardPtr[game++] };
+	printCard(cardsOfGamer[0]);
+	cardsOfMachine[0] = { deckCardPtr[game++] };
+	printCard(cardsOfMachine[0]);
+	cardsOfGamer[1] = { deckCardPtr[game++] };
+	printCard(cardsOfGamer[1]);
 
 	summCardsOfGamer = { Summ(cardsOfGamer) };
 	summCardsOfMachine = { Summ(cardsOfMachine) };
 
-	for (int i = 1; summCardsOfGamer < 21; ++i)
+	
+	for (int i = 2; summCardsOfGamer < 21; ++i)
 	{
 		char answer{};
 		std::cout << "Do you need another card?";
 		answer = question(answer, 'm', 'e');
 		if (answer == 'm')
 		{
-			cardsOfGamer[i] = { deckCardPtr[i] };
+			cardsOfGamer[i] = { deckCardPtr[game++] };
 			printCard(cardsOfGamer[i]);
 			summCardsOfGamer = { Summ(cardsOfGamer) };
 		}
@@ -236,32 +240,34 @@ void playBlackjack(std::array<std::array<Card, 52>, 6>& deck, double purse)
 			break;
 	}
 
-	cardsOfMachine[1] = { deckCardPtr[1] };
+	cardsOfMachine[1] = { deckCardPtr[game++] };
 	summCardsOfMachine = { Summ(cardsOfMachine) };
 	if ((summCardsOfGamer == 21) && (getCardValue(cardsOfMachine[0]) > RANK_9))
 	{
 		std::cout << "\t\tHit or Stand?\n\t\thit---->h\tstand---->s\n";
-		char answer = question(answer, 'h', 's');
+		char answer{};
+		answer = question(answer, 'h', 's');
 		if (answer == 'h')
 			purse += (2 * bet);
 		else
 		{
-			for (int i = 2; summCardsOfMachine <= 21; ++i)
+			printCard(cardsOfMachine[1]);
+			for (int i = 2; summCardsOfMachine <= 26; ++i)
 			{
+				
 				if (summCardsOfMachine == 21)
 				{
-					printCard(cardsOfMachine[i]);
 					std::cout << "\t\t\tPUSH!!!";
 					purse += bet;
 				}
-				else if (summCardsOfMachine < 21 && summCardsOfMachine > 16)
+				else if (summCardsOfMachine > 16)
 				{
-					printCard(cardsOfMachine[1]);
+					std::cout << "";
 					purse += (3 * bet);
 				}
 				else
 				{
-					cardsOfMachine[i] = { deckCardPtr[i] };
+					cardsOfMachine[i] = { deckCardPtr[game++] };
 					printCard(cardsOfMachine[i]);
 					summCardsOfMachine = { Summ(cardsOfMachine) };
 				}
@@ -271,11 +277,35 @@ void playBlackjack(std::array<std::array<Card, 52>, 6>& deck, double purse)
 	}
 	else if (summCardsOfGamer > 21)
 		std::cout << "";
-	else if (summCardsOfGamer < summCardsOfMachine)
-		std::cout << "";
-
+	else
+	{
+		printCard(cardsOfMachine[1]);
+		for (int i = 2; summCardsOfMachine <= 26; ++i)
+		{
+			if (summCardsOfMachine == summCardsOfGamer)
+			{
+				std::cout << "\t\t\tPUSH!!!";
+				purse += bet;
+			}
+			else if (summCardsOfMachine > 16)
+			{
+				if (summCardsOfGamer > summCardsOfMachine)
+				{
+					purse += (2.5 * bet);
+					std::cout << "";
+				}
+				else
+					std::cout << "";
+			}
+			else
+			{
+				cardsOfMachine[i] = { deckCardPtr[game++] };
+				printCard(cardsOfMachine[i]);
+				summCardsOfMachine = { Summ(cardsOfMachine) };
+			}
+		}
+	}
 }
-
 
 
 int main()
@@ -293,7 +323,7 @@ int main()
 	
 	for (int d_deck = 0; d_deck < 6; ++d_deck)//Внешний уровень - колоды
 	{
-		int card{ 0 };//Итолько здесь начинаем отсчёт карт
+		int card{ 0 };//И только здесь начинаем отсчёт карт
 
 		//Присваиваем облик одной карты
 		for (int suit = 0; suit < SUIT_MAX; ++suit)
@@ -311,6 +341,7 @@ int main()
 	std::cout << '\n';
 	printDeck(deck);
 	*/
+	
 	
 	playBlackjack(deck, purse);
 	
