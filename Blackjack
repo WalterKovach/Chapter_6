@@ -1,4 +1,4 @@
-//Требует доработки
+//Когда-нибудь дофиксю
 
 #include <iostream>
 #include <cstdlib>
@@ -217,13 +217,13 @@ void playBlackjack(std::array<std::array<Card, 52>, 6>& deck, double &purse)
 	for (int i = 0; i < 2; ++i)
 	{
 		cardsOfGamer[i] = { deckCardPtr[game++] };
-		std::cout << "\n\t\tYour card: \n";
+		std::cout << "\n\t\tYour card #" << i+1 << '\n';
 		printCard(cardsOfGamer[i]);
 
 		cardsOfMachine[i] = { deckCardPtr[game++] };
 		if (i == 0)
 		{
-			std::cout << "\n\t\tMachin's card: \n";
+			std::cout << "\n\t\tMachin's card #" << i+1 << '\n';
 			printCard(cardsOfMachine[i]);
 		}
 	}
@@ -240,8 +240,10 @@ void playBlackjack(std::array<std::array<Card, 52>, 6>& deck, double &purse)
 		if (answer == 'm')
 		{
 			cardsOfGamer[i] = { deckCardPtr[game++] };
+			std::cout << "\n\t\tYour card #" << i+1 << '\n';
 			printCard(cardsOfGamer[i]);
 			summCardsOfGamer = { Summ(cardsOfGamer) };
+			std::cout << "\n\tYour summ of ranks: " << summCardsOfGamer;
 		}
 		else
 			break;
@@ -255,14 +257,13 @@ void playBlackjack(std::array<std::array<Card, 52>, 6>& deck, double &purse)
 		question(answer, 'h', 's');
 		if (answer == 'h') 
 		{
-			std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
 			purse += (2 * bet);
 			std::cout << "\n\tYour winnings are "<<bet<<" from the original bet";
 			menu(deck, purse);
 		}
 		else
 		{
-			std::cout << "\n\t\tMachin's card: \n";
+			std::cout << "\n\t\tMachin's card #" << 2 << '\n';
 			printCard(cardsOfMachine[1]);
 			for (int i = 2; summCardsOfMachine <= 26; ++i)
 			{
@@ -278,39 +279,37 @@ void playBlackjack(std::array<std::array<Card, 52>, 6>& deck, double &purse)
 				else if (summCardsOfMachine > 16)
 				{
 					std::cout << "\n\tYour summ of ranks: " << summCardsOfGamer;
-					std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
 					std::cout << "\n\tLucky! you win your tripled bet. This is BLACKJACK!!!";
 					purse += (3 * bet) + bet;
 					menu(deck, purse);
 				}
 				else
 				{
+					std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
+					std::cout << "\n\tThe machine takes another card.";
 					cardsOfMachine[i] = { deckCardPtr[game++] };
-					std::cout << "\n\t\tMachin's card: \n";
+					std::cout << "\n\t\tMachin's card #" << i+1 << '\n';
 					printCard(cardsOfMachine[i]);
 					summCardsOfMachine = { Summ(cardsOfMachine) };
-					std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
 				}
 			}
 		}
 	}
 	else if (summCardsOfGamer > 21) 
 	{
-		std::cout << "\n\tYour summ of ranks: " << summCardsOfGamer;
-		std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
 		std::cout << "\n\t\t\tDude! You lost!";
 		menu(deck, purse);
 	}
 	else
 	{
-		std::cout << "\n\t\tMachin's card: \n";
+		std::cout << "\n\t\tMachin's card #" << 2 << '\n';
 		printCard(cardsOfMachine[1]);
 		for (int i = 2; summCardsOfMachine <= 26; ++i)
 		{
+			std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
 			if (summCardsOfMachine == summCardsOfGamer)
 			{
 				std::cout << "\n\tYour summ of ranks: " << summCardsOfGamer;
-				std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
 				std::cout << "\n\t\t\tPUSH!!!";
 				purse += bet;
 				std::cout << "\n\tOkey. Take your loot back.";
@@ -322,14 +321,12 @@ void playBlackjack(std::array<std::array<Card, 52>, 6>& deck, double &purse)
 				if (summCardsOfGamer > summCardsOfMachine || summCardsOfMachine > 21)
 				{
 					std::cout << "\n\tYour summ of ranks: " << summCardsOfGamer;
-					std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
 					purse += (2.5 * bet) + bet;
 					std::cout << "\n\tOkey. You win: " << 2.5 * bet;
 				}
 				else 
 				{
 					std::cout << "\n\tYour summ of ranks: " << summCardsOfGamer;
-					std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
 					std::cout << "\n\tDude! you lost!";
 				}
 				menu(deck, purse);
@@ -339,10 +336,9 @@ void playBlackjack(std::array<std::array<Card, 52>, 6>& deck, double &purse)
 			{
 				cardsOfMachine[i] = { deckCardPtr[game++] };
 				std::cout << "\n\tThe machine takes another card.";
-				std::cout << "\n\t\tMachin's card: \n";
+				std::cout << "\n\t\tMachin's card #" << i+1 << '\n';
 				printCard(cardsOfMachine[i]);
 				summCardsOfMachine = { Summ(cardsOfMachine) };
-				std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
 			}
 		}
 	}
@@ -408,4 +404,3 @@ void Owl_san()
 	std::cout << "\t\t\t\t {/^'^'^\\}\n";
 	std::cout << "\t\t\t\t  ~~m-m~~\n\n\n";
 }
-
