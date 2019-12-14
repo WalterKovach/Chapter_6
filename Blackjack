@@ -1,14 +1,17 @@
 //Требует доработки
 
-#include <iostream>
+##include <iostream>
 #include <cstdlib>
 #include <ctime>
 #include <array>
 #include <string>
 
 void Owl_san();
+
+
 enum CardRank
 {
+	RANK_NULL,
 	RANK_2,
 	RANK_3,
 	RANK_4,
@@ -39,6 +42,8 @@ struct Card
 	CardSuit suit;//достоинство
 };
 
+void menu(std::array<std::array<Card, 52>, 6>& deck, double& purse);
+
 void printRank(const Card& card)
 {
 	switch (card.rank)
@@ -57,7 +62,6 @@ void printRank(const Card& card)
 	case RANK_KING: std::cout << " K";  break;
 	case RANK_ACE: std::cout << " A";  break;
 	}
-	
 }
 void printSuit(const Card &card) 
 {
@@ -68,8 +72,6 @@ void printSuit(const Card &card)
 		case SUIT_CHERVU: std::cout << "CH";  break;
 		case SUIT_PIKI: std::cout << " P";  break;
 	}
-
-
 }
 void printCard(const Card &card) 
 {
@@ -150,16 +152,16 @@ void money_f(double &money)
 			std::cin.clear();
 			std::cin.ignore(32676, '\n');
 		}
-	} while (money<=100);
+	} while (money<100);
 }
 
 
-char question(char answer,  char x,  char y) 
+char question(char &answer,  char x,  char y) 
 {
 	do{
 		std::cin >> answer;
 		std::cin.ignore(32676, '\n');
-	} while (answer != x || answer != y);
+	} while (answer != x && answer != y);
 	return answer;
 }
 
@@ -173,62 +175,67 @@ int findAce(std::array<Card, 21> &cards)
 	}
 	return 0;
 }
+
 int Summ(std::array<Card, 21>& cards)
 {
 	int summ{ 0 };
 	
-	for (int i = 0; i < 21; ++i)
+	for (auto &element: cards)
 	{
-		int rank = getCardValue(cards[i]);
-		if ( i > 0 && (rank == RANK_ACE || findAce(cards)))//Первый туз всегда засчитываем как 11
-		{
-			summ += rank;
-			if (summ>21)
-			{
-				//Если текущая карта туз - то мы заменяем ПЕРВЫЙ ВСТРЕЧНЫЙ туз на модифицированный туз со значением 1
+		int rank = getCardValue(element);
+		summ += rank;
+
+		//Если на руках есть туз И ---> сумма всех карт превышает 21 - то мы заменяем ПЕРВЫЙ ВСТРЕЧНЫЙ туз на модифицированный туз со значением 1
 				//1,11,11 = 23--->1,1,11 = 13 (варианта 11,1,11 просто не может существовать)
-				cards[findAce(cards)].rank = RANK_1_ACE;
-/*Сумму считаем по особенному:  в любом случае отнимаем 10 и прибавляем НЕМОДИФИЦИРОВАННЫЙ ТУЗ(если текущая карта туз)
-														   или значение обычной карты*/
-				summ -= 10;
-			}
+		if (summ > 21 && findAce(cards))
+		{
+			cards[findAce(cards)].rank = RANK_1_ACE;
+			summ -= 10;
 		}
-		else
-			summ += rank;
+		else if (rank == 0)
+			break;
 	}
 	return summ;
 }
 
-void playBlackjack(std::array<std::array<Card, 52>, 6>& deck, double purse)
+
+void playBlackjack(std::array<std::array<Card, 52>, 6>& deck, double &purse)
 {
-	std::array<Card, 21> cardsOfGamer{};
-	std::array<Card, 21> cardsOfMachine{};
+	std::array<Card, 21> cardsOfGamer = {};
+	std::array<Card, 21> cardsOfMachine = {};
+
 	Card* deckCardPtr = &deck[0][0];
 	int game{ 0 };
 
-	std::cout << "Your bet - ";
+	std::cout << "\n\tYour bet - ";
 	double bet;
 	money_f(bet);
 	purse -= bet;
 	int summCardsOfGamer{ 0 };
 	int summCardsOfMachine{ 0 };
 
+	for (int i = 0; i < 2; ++i)
+	{
+		cardsOfGamer[i] = { deckCardPtr[game++] };
+		std::cout << "\n\t\tYour card: \n";
+		printCard(cardsOfGamer[i]);
 
-	cardsOfGamer[0] = { deckCardPtr[game++] };
-	printCard(cardsOfGamer[0]);
-	cardsOfMachine[0] = { deckCardPtr[game++] };
-	printCard(cardsOfMachine[0]);
-	cardsOfGamer[1] = { deckCardPtr[game++] };
-	printCard(cardsOfGamer[1]);
-
+		cardsOfMachine[i] = { deckCardPtr[game++] };
+		if (i == 0)
+		{
+			std::cout << "\n\t\tMachin's card: \n";
+			printCard(cardsOfMachine[i]);
+		}
+	}
 	summCardsOfGamer = { Summ(cardsOfGamer) };
 	summCardsOfMachine = { Summ(cardsOfMachine) };
-
+	std::cout << "\n\tYour summ of ranks: " << summCardsOfGamer ;
 	
+
 	for (int i = 2; summCardsOfGamer < 21; ++i)
 	{
 		char answer{};
-		std::cout << "Do you need another card?";
+		std::cout << "\n\tDo you need another card?\tmore----->m\tenough----->e\n\t\t\t\t\t\t     ";
 		answer = question(answer, 'm', 'e');
 		if (answer == 'm')
 		{
@@ -240,122 +247,165 @@ void playBlackjack(std::array<std::array<Card, 52>, 6>& deck, double purse)
 			break;
 	}
 
-	cardsOfMachine[1] = { deckCardPtr[game++] };
-	summCardsOfMachine = { Summ(cardsOfMachine) };
+	
 	if ((summCardsOfGamer == 21) && (getCardValue(cardsOfMachine[0]) > RANK_9))
 	{
-		std::cout << "\t\tHit or Stand?\n\t\thit---->h\tstand---->s\n";
+		std::cout << "\n\t\tHit or Stand?\n\t\thit---->h\tstand---->s\n\t\t\t\t   ";
 		char answer{};
-		answer = question(answer, 'h', 's');
-		if (answer == 'h')
+		question(answer, 'h', 's');
+		if (answer == 'h') 
+		{
+			std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
 			purse += (2 * bet);
+			std::cout << "\n\tYour winnings are "<<bet<<" from the original bet";
+			menu(deck, purse);
+		}
 		else
 		{
+			std::cout << "\n\t\tMachin's card: \n";
 			printCard(cardsOfMachine[1]);
 			for (int i = 2; summCardsOfMachine <= 26; ++i)
 			{
-				
 				if (summCardsOfMachine == 21)
 				{
-					std::cout << "\t\t\tPUSH!!!";
+					std::cout << "\n\tYour summ of ranks: " << summCardsOfGamer;
+					std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
+					std::cout << "\n\t\t\tPUSH!!!";
 					purse += bet;
+					std::cout << "\n\tOkey. Take your loot back.";
+					menu(deck, purse);
 				}
 				else if (summCardsOfMachine > 16)
 				{
-					std::cout << "";
-					purse += (3 * bet);
+					std::cout << "\n\tYour summ of ranks: " << summCardsOfGamer;
+					std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
+					std::cout << "\n\tLucky! you win your tripled bet. This is BLACKJACK!!!";
+					purse += (3 * bet) + bet;
+					menu(deck, purse);
 				}
 				else
 				{
 					cardsOfMachine[i] = { deckCardPtr[game++] };
+					std::cout << "\n\t\tMachin's card: \n";
 					printCard(cardsOfMachine[i]);
 					summCardsOfMachine = { Summ(cardsOfMachine) };
+					std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
 				}
 			}
 		}
-
 	}
-	else if (summCardsOfGamer > 21)
-		std::cout << "";
+	else if (summCardsOfGamer > 21) 
+	{
+		std::cout << "\n\tYour summ of ranks: " << summCardsOfGamer;
+		std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
+		std::cout << "\n\t\t\tDude! You lost!";
+		menu(deck, purse);
+	}
 	else
 	{
+		std::cout << "\n\t\tMachin's card: \n";
 		printCard(cardsOfMachine[1]);
 		for (int i = 2; summCardsOfMachine <= 26; ++i)
 		{
 			if (summCardsOfMachine == summCardsOfGamer)
 			{
-				std::cout << "\t\t\tPUSH!!!";
+				std::cout << "\n\tYour summ of ranks: " << summCardsOfGamer;
+				std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
+				std::cout << "\n\t\t\tPUSH!!!";
 				purse += bet;
+				std::cout << "\n\tOkey. Take your loot back.";
+				menu(deck, purse);
+				break;
 			}
 			else if (summCardsOfMachine > 16)
 			{
-				if (summCardsOfGamer > summCardsOfMachine)
+				if (summCardsOfGamer > summCardsOfMachine || summCardsOfMachine > 21)
 				{
-					purse += (2.5 * bet);
-					std::cout << "";
+					std::cout << "\n\tYour summ of ranks: " << summCardsOfGamer;
+					std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
+					purse += (2.5 * bet) + bet;
+					std::cout << "\n\tOkey. You win: " << 2.5 * bet;
 				}
-				else
-					std::cout << "";
+				else 
+				{
+					std::cout << "\n\tYour summ of ranks: " << summCardsOfGamer;
+					std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
+					std::cout << "\n\tDude! you lost!";
+				}
+				menu(deck, purse);
+				break;
 			}
 			else
 			{
 				cardsOfMachine[i] = { deckCardPtr[game++] };
+				std::cout << "\n\tThe machine takes another card.";
+				std::cout << "\n\t\tMachin's card: \n";
 				printCard(cardsOfMachine[i]);
 				summCardsOfMachine = { Summ(cardsOfMachine) };
+				std::cout << "\n\tSumm of machine: " << summCardsOfMachine;
 			}
 		}
 	}
 }
 
 
-int main()
+void createDeck(std::array<std::array<Card, 52>, 6> &deck)
 {
-	Owl_san();
-	std::cout << "How much money are you willing to spend on gambling?\nMinimum rate - 100\n";
-
-	double purse;
-	money_f(purse);
-
-	
-
-	std::array<std::array<Card, 52>, 6> deck;//Создаём массив из 6 колод карт, в каждой из которых по 52 карты
-
-	
 	for (int d_deck = 0; d_deck < 6; ++d_deck)//Внешний уровень - колоды
 	{
 		int card{ 0 };//И только здесь начинаем отсчёт карт
 
 		//Присваиваем облик одной карты
 		for (int suit = 0; suit < SUIT_MAX; ++suit)
-			for (int rank = 0; rank < RANK_MAX; ++rank)
+			for (int rank = 1; rank < RANK_MAX; ++rank)
 			{
 				deck[d_deck][card].suit = static_cast<CardSuit>(suit);
 				deck[d_deck][card].rank = static_cast<CardRank>(rank);
 				card++;
 			}
 	}
-	shuffleDeck(deck);
-	/*
-	printDeck(deck);
-	
-	std::cout << '\n';
-	printDeck(deck);
-	*/
-	
-	
-	playBlackjack(deck, purse);
-	
+}
+void menu(std::array<std::array<Card, 52>, 6> &deck, double &purse)
+{
+	std::cout << "\n\tDo you want to play?\tyes---y\t\tno---n\n\t\t\t\t\t   ";
+	char answer = question(answer, 'y', 'n');
+	if (answer == 'y')
+	{
+		shuffleDeck(deck);
+
+		/*printDeck(deck);
+		
+		std::cout << '\n';
+		printDeck(deck);
+		*/
+		playBlackjack(deck, purse);
+	}
+		
+}
+
+int main()
+{
+	Owl_san();
+	std::cout << "\tHow much money are you willing to spend on gambling?\n\tMinimum rate - 100\t";
+	double purse;
+	money_f(purse);
+	std::array<std::array<Card, 52>, 6> deck;//Создаём массив из 6 колод карт, в каждой из которых по 52 карты
+	createDeck(deck);
+	srand(static_cast<unsigned int>(time(0))); // устанавливаем значение системных часов в качестве стартового числа
+	rand(); // если используете Visual Studio, сбрасываем первое сгенерированное рандомное число
+
+	menu(deck, purse);
+	std::cout << "\n\t\t\tYour balance is " << purse;
 	return 0;
 }
 
 
-
-
 void Owl_san() 
 {
-	std::cout << "\t:)\\____/(:\n";
-	std::cout << "\t  (@)v(@)\n";
-	std::cout << "\t {|~- -~|}\n";
-	std::cout << "\t {/^'^'^\\}\n";
-	std::cout << "\t  ~~m-m~~\n\n\n";
+	std::cout << "\n\n\t\t\t\t:)\\____/(:\n";
+	std::cout << "\t\t\t\t  (@)v(@)\n";
+	std::cout << "\t\t\t\t {|~- -~|}\n";
+	std::cout << "\t\t\t\t {/^'^'^\\}\n";
+	std::cout << "\t\t\t\t  ~~m-m~~\n\n\n";
 }
+
