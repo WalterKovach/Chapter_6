@@ -390,7 +390,8 @@ void menu(std::array<std::array<Card, 52>, 6> &deck, double &purse)
 		*/
 		playBlackjack(deck, purse);
 	}
-		
+	else
+		std::cout << "\n\t\t\tYour balance is " << purse;
 }
 
 int main()
@@ -412,9 +413,10 @@ int main()
 	rand(); // если используете Visual Studio, сбрасываем первое сгенерированное рандомное число
 
 	menu(deck, purse);
-	std::cout << "\n\t\t\tYour balance is " << purse;
+	
 	return 0;
 }
+
 
 
 void Owl_san() 
