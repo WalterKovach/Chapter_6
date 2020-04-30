@@ -1,0 +1,129 @@
+#include <iostream>
+
+struct frameCoordinates //кооридинаты рамок
+{
+	int x;
+	int y;
+	int n;//номер текущей рамки в порядке изначально заполенения
+};
+struct lines
+{
+	int start;
+	int end;
+	int nElements;
+};
+void swapFrame(frameCoordinates &a1, frameCoordinates &a2)
+{
+	frameCoordinates b=a1;
+	a1 = a2;
+	a2 = b;
+	return;
+}
+void delFrame(frameCoordinates *out,const int nForDel, int &nFrameOut)
+{
+	
+	for (int i = nForDel; i < nFrameOut-1; ++i)
+	{
+		out[i] = out[i+1];
+	}
+	nFrameOut--;
+}
+void printFrame(const frameCoordinates& frame)
+{
+	std::cout << "  x = " << frame.x << ",\t   y = " << frame.y << ",\t   n = "<< frame.n;
+}
+int main()
+{
+//////////////Создание рамок для последующей сортировки
+//////////////Несколько строк несколько столбцов с разбего плюс минус 5 см
+	const int N_FrameMax = 4;
+	frameCoordinates *frame=new frameCoordinates[N_FrameMax];
+
+	for (int row = 0; row < N_FrameMax/2; row++)//Создадим рамки
+	{
+		for (int col= 0; col< N_FrameMax / 2;col++)
+		{
+
+		frame[row * N_FrameMax / 2 + col].x = col*600 + rand() % 50;//Например ставим пять рядов 5 столбцов рамки косячно с погрешностью 5 см
+		frame[row * N_FrameMax / 2 + col].y = row*600 + rand() % 50;
+		frame[row * N_FrameMax / 2 + col].n = row * N_FrameMax / 2 + col;
+
+		}
+	}
+
+	for (int i = 0; i < N_FrameMax; i++)//Тусуем рамки
+	{
+		swapFrame(frame[i], frame[rand() % N_FrameMax]);
+	}
+
+	for (int i = 0; i < N_FrameMax; i++)
+	{
+		printFrame(frame[i]);
+		std::cout << std::endl;
+	}
+
+//////////Старт непосредственно кода сортировки рамок
+	int nFrame = N_FrameMax;//задаем начальное количество рамок, потом будем рамки вырезать с уменьшением этого числа
+	frameCoordinates sortFrame[N_FrameMax];//здесь будут отсортированные рамки
+	frameCoordinates TopFrameOnLine{ 0, 0, 0 };//здесь наивысшая рамка в текущей строке
+	lines lineOfFrames[N_FrameMax];//не хотелось морочиться, пусть количество строк равно количеству рамок
+	lineOfFrames[1].start = 0; //это стартовый элемент из общего перечня рамок frame для текущей строки
+	lineOfFrames[1].end = lineOfFrames[1].start; //это конечный элемент из общего перечня рамок frame для текущей строки
+	int line = 1;
+	while (nFrame>0)//пока есть не отсортированные рамки
+	{
+		if (line > 1)
+		{
+			lineOfFrames[line].start = lineOfFrames[line - 1].end;
+			lineOfFrames[line].end = lineOfFrames[line].start;
+		}
+		TopFrameOnLine = frame[0];
+		for (int i = 0; i < nFrame; i++) 	//теперь находим самую верхнюю рамку в текущей строке
+		{
+			if (frame[i].y > TopFrameOnLine.y) TopFrameOnLine = frame[i];
+		}
+		for (int i = 0; i < nFrame; i++) 	//теперь в коридоре плюс минус 10 см создаем строку рамок
+		{
+			if (abs(frame[i].y - TopFrameOnLine.y) < 20)
+			{
+				sortFrame[lineOfFrames[line].end].x = frame[i].x;
+				sortFrame[lineOfFrames[line].end].y = frame[i].y;
+				sortFrame[lineOfFrames[line].end].n = frame[i].n;
+				lineOfFrames[line].end++;
+				delFrame(frame, i, nFrame);//удаляем рамку из сборки рамок и уменьшаем счетчик рамок на 1;
+				i--;//смещаем счетчик на 1 обратно, потому что необходимо проверить текущий номер рамки уже с другой рамкой
+			}
+		}
+
+		//теперь необходимо отсортировать строку по возрастанию слева направо
+
+		for (int i1 = lineOfFrames[line].start; i1 < lineOfFrames[line].end; i1++) //пузырьковая сортировка
+		{
+			bool flag = true;
+			for (int i2 = lineOfFrames[line].start; i2 < lineOfFrames[line].end - 1 - i1; i2++)
+			{
+				if (sortFrame[i2].x > sortFrame[i2 + 1].x)
+				{
+					flag = false;
+					swapFrame(sortFrame[i2], sortFrame[i2 + 1]);
+				}
+				if (flag) break;
+			}
+
+		}
+		line++;
+	}
+
+	//выведем теперь рамки для печати
+	std::cout << std::endl;
+	for (int i1 = 0; i1 < line; i1++)
+	{
+		for (int i2 = lineOfFrames[i1].start; i2 < lineOfFrames[i1].end; i2++)
+		{
+			printFrame(sortFrame[i2]);
+			std::cout << std::endl;
+		}   	 	
+		
+	}
+
+}
